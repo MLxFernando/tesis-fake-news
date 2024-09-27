@@ -1,50 +1,55 @@
-import time
+
 import joblib
-from sklearn.metrics import accuracy_score
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
+import pandas as pd
 
-def train_and_evaluate_model(model, model_name, X_train, X_test, y_train, y_test):
-    """
-    Entrena y evalúa un modelo dado usando el método normal de train/test split.
+class TrainningModel:
 
-    :param model: Modelo a entrenar.
-    :param model_name: Nombre del modelo.
-    :param X_train: Datos de entrenamiento vectorizados.
-    :param X_test: Datos de prueba vectorizados.
-    :param y_train: Etiquetas de entrenamiento.
-    :param y_test: Etiquetas de prueba.
-    :return: Nombre del modelo, modelo entrenado, tiempo de ejecución y precisión en el conjunto de prueba.
-    """
-    start_time = time.time()
+    def __init__(self):
+        self.pd = None
+        self.scaler = None
 
-    # Entrenar el modelo
-    model.fit(X_train, y_train)
 
-    end_time = time.time()
-    execution_time = end_time - start_time
+    def read_preprocessed_data(self, path):
+        self.pd = pd.read_csv(path)
+        self.x = self.pd.drop(columns=['result'], axis=1).values
+        self.y = self.pd['result'].values
 
-    # Evaluar el modelo
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+        self.scaler = StandardScaler(with_mean=False)
+        self.x = self.scaler.fit_transform(self.x)
+    
 
-    print(f'Accuracy for {model_name}: {accuracy:.2f}')
-    print(f'Time taken for {model_name}: {execution_time:.2f} seconds')
 
-    return model_name, model, execution_time, accuracy
+    def train_and_evaluate_model(self,):
+        
+        #Separar los datos de entrenamiento y prueba
+        X_train, X_test, y_train, y_test = train_test_split(self.x, self.y, test_size=0.2, random_state=42)
 
-def save_model(model, model_name):
-    """
-    Guarda el modelo entrenado en un archivo .pkl.
+        # Entrenar el modelo
+        self.model = RandomForestClassifier( n_jobs=-1)
+        self.model.fit(X_train, y_train)
+        
+        # Evaluar el modelo
+        y_pred = self.model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        precition = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        print(f'Accuracy: {accuracy:.2f}')
+        print(f'Precision: {precition:.2f}')
+        print(f'Recall: {recall:.2f}')
 
-    :param model: Modelo entrenado.
-    :param model_name: Nombre del archivo donde se guardará el modelo.
-    """
-    joblib.dump(model, f'{model_name}_model.pkl')
+    def save_model(self, model_name, scaler_name):
+        """
+        Guarda el modelo entrenado en un archivo .pkl.
+        :param model_name: Nombre del archivo donde se guardará el modelo.
+        """
+        joblib.dump(self.model, f'data/{model_name}_model.pkl')
+        """
+        Guardar Scaler 
 
-def load_model(model_path):
-    """
-    Carga un modelo previamente guardado desde un archivo .pkl.
-
-    :param model_path: Ruta del archivo del modelo.
-    :return: Modelo cargado.
-    """
-    return joblib.load(model_path)
+        :param model_name: Nombre del archivo donde se guardará el modelo.
+        """
+        joblib.dump(self.scaler, f'data/scaler.pkl')
