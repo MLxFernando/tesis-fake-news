@@ -34,8 +34,8 @@ def clean_data(df, sample_size=None):
     :return: DataFrame limpio.
     """
     # Eliminar filas con valores nulos en la columna 'text'
+    print("Limpiando texto")
     df = df.dropna(subset=['text'])
-    
     # Si se proporciona un tamaño de muestra, realizar el muestreo
     if sample_size:
         df = df.sample(n=sample_size, random_state=42)
