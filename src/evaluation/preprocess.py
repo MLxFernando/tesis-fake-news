@@ -3,6 +3,7 @@ import nltk
 from nltk.corpus import stopwords
 import pandas as pd
 from nltk.stem import WordNetLemmatizer
+from concurrent.futures import ProcessPoolExecutor
 from src.evaluation.feature_extraction import ExtactionFeatures
 
 # Descargar recursos necesarios para NLTK
@@ -66,29 +67,34 @@ def preprocess_data(df):
 
 def preprocess_one_row(row):
     text  = row['text']
-    result = 1 if row['label'] == 'Fake' else 0
+    result = 1 if row['label'] == 'FAKE' else 0
     preprocessed_text = preprocess_text(text)
-    
     return {'tokens': preprocessed_text, 'result': result}
 
-
-def preprocess(df):
-
-    print({"num_rows": df.shape[0], "num_cols": df.shape[1]})
-    process_data = []
-    # Preprocesar cada fila aplicando for
-    for index, row in df.iterrows():
-        preprocessed_row = preprocess_one_row(row)
-        # preprocessed_row contine un diccionario con el texto preprocesado y el resultado
-        process_data.append(preprocessed_row)
+    # Definir una función que procesa una fila
+def process_row(row):
+    return preprocess_one_row(row)
     
+def preprocess(path):
+    df = pd.read_csv(path)
+    print({"num_rows": df.shape[0], "num_cols": df.shape[1]})
+
+
+    # Usar ProcessPoolExecutor para paralelizar el procesamiento de filas
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        # Ejecutar el procesamiento en paralelo para cada fila
+        process_data = list(executor.map(process_row, [row for _, row in df.iterrows()]))
+
+    # Convertir los datos procesados en un DataFrame
     df_process_data = pd.DataFrame(process_data)
+    
+    # Extraer características con TF-IDF
     tfidf_transformer = ExtactionFeatures(num_features=5000)
     tfidf_df, vectorizer, selector = tfidf_transformer.extract_features(df_process_data['tokens'], df_process_data['result'])
-    tfidf_df["result"] = df_process_data["result"]
+    tfidf_df["result"] = df_process_data["result"].values
 
-    tfidf_df.to_csv("data_preprocessed.csv")
+    # Guardar el DataFrame procesado en un archivo CSV
+    tfidf_df.to_csv("data/processed/data_preprocessed_final.csv")
+
+    # Guardar el vectorizador y el selector
     tfidf_transformer.save_vectorizer_and_selector(vectorizer, selector)
-    
-
-

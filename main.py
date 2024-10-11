@@ -3,8 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report
-import concurrent.futures
-import joblib
+
 from src.trainning.trainning_model import TrainningModel
 from src.cleaning.cleanning import clean_data, clean_text
 from src.evaluation.preprocess import preprocess
@@ -27,27 +26,33 @@ def main():
         opcion = input("Seleccione una opcion: ")
         if opcion == "1":
             print("Leyendo los datos")
-            raw_df = pd.read_csv('dataset_final_combinado.csv')
+            raw_df = pd.read_csv('data/raw/dataset_reducido.csv')
         elif opcion == "2":
             print("Limpiando los datos")
             cleaned_df = limpiar_dataset(raw_df)
         elif opcion == "3":
             print("Preprocesando los datos")
-            preprocesar_dataset(cleaned_df)
+            preprocesar_dataset("data/processed/data_cleaned_output.csv")
         elif opcion == "4":
             print("Entrenando el modelo")
+            trainig_model("data/processed/data_preprocessed_final.csv")
 
 
 def limpiar_dataset(raw_df):
-    cleaned_df = clean_data(raw_df,sample_size=60000)
-    cleaned_df['text'] = cleaned_df['text'].apply(clean_text)
+    # Limpiar los datos y aplicar transformaciones al texto
+    cleaned_df = clean_data(raw_df)
+    cleaned_df.loc[:, 'text'] = cleaned_df['text'].apply(clean_text)
+
     # Eliminar la columna 'title' ya que no se usará en el entrenamiento
     cleaned_df = cleaned_df.drop(columns=['title'], errors='ignore')
+    # Guardar el dataset limpio en un archivo CSV sin incluir el índice
+    cleaned_df.to_csv("data/processed/data_cleanned_final.csv", index=False)
     return cleaned_df
 
 
-def preprocesar_dataset(cleaned_df):
-    preprocess(cleaned_df)
+
+def preprocesar_dataset(path):
+    preprocess(path)
 
 
 def trainig_model(preproces_data):

@@ -1,2 +1,4 @@
 data
 .venv
+selector.pkl
+tfldf_vectorizer.pkl
