@@ -3,3 +3,6 @@ pandas
 scikit-learn
 nltk
 textblob
+python-dotenv
+matplotlib
+seaborn

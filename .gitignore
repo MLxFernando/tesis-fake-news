@@ -2,3 +2,5 @@ data
 .venv
 selector.pkl
 tfldf_vectorizer.pkl
+
+venv_tesis_fakenews
