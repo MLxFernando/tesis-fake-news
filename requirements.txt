@@ -6,3 +6,9 @@ textblob
 python-dotenv
 matplotlib
 seaborn
+contractions
+numpy
+scipy
+textstat
+gensim
+wordcloud

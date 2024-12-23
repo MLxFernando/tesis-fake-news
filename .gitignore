@@ -1,6 +1,4 @@
 data
 .venv
-selector.pkl
-tfldf_vectorizer.pkl
-
+entorno_tesis
 venv_tesis_fakenews
